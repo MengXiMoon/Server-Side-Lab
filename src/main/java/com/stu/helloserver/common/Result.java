@@ -8,24 +8,42 @@ public class Result<T> {
     public Result() {
     }
 
-    public Result(Integer code, String msg, T data) {
-        this.code = code;
-        this.msg = msg;
-        this.data = data;
-    }
-
+    // 静态工厂方法：成功回调
     public static <T> Result<T> success(T data) {
-        return new Result<>(200, "操作成功", data);
+        Result<T> result = new Result<>();
+        result.code = ResultCode.SUCCESS.getCode();
+        result.msg = ResultCode.SUCCESS.getMsg();
+        result.data = data;
+        return result;
     }
 
     public static <T> Result<T> success() {
-        return new Result<>(200, "操作成功", null);
+        Result<T> result = new Result<>();
+        result.code = ResultCode.SUCCESS.getCode();
+        result.msg = ResultCode.SUCCESS.getMsg();
+        result.data = null;
+        return result;
     }
 
+    // 静态工厂方法：失败回调
+    public static <T> Result<T> error(ResultCode resultCode) {
+        Result<T> result = new Result<>();
+        result.code = resultCode.getCode();
+        result.msg = resultCode.getMsg();
+        result.data = null;
+        return result;
+    }
+
+    // 兼容原有的 error(String) 方法
     public static <T> Result<T> error(String msg) {
-        return new Result<>(500, msg, null);
+        Result<T> result = new Result<>();
+        result.code = ResultCode.ERROR.getCode();
+        result.msg = msg;
+        result.data = null;
+        return result;
     }
 
+    // Getter & Setter
     public Integer getCode() {
         return code;
     }
