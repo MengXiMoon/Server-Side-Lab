@@ -20,11 +20,8 @@ public class AuthInterceptor implements HandlerInterceptor {
         // 规则 A: 如果是 POST 请求，且路径精确等于 "/api/users"，则放行（允许注册）
         boolean isCreateUser = "POST".equalsIgnoreCase(method) && "/api/users".equals(uri);
 
-        // 规则 B: 如果是 GET 请求，且路径以 "/api/users/" 开头（简易版判断，允许查看详情）
-        boolean isGetUser = "GET".equalsIgnoreCase(method) && uri.startsWith("/api/users/");
-
-        // 只要满足上述任一合法公开规则，直接放行，无需查验 Token
-        if (isCreateUser || isGetUser) {
+        // 只要满足合法公开规则，直接放行，无需查验 Token
+        if (isCreateUser) {
             return true;
         }
 
