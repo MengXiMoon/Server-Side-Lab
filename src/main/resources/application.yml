@@ -4,3 +4,7 @@ spring:
     url: jdbc:postgresql://localhost:5432/lab_db # 端口改为 5432
     username: postgres
     password: 123456 # 替换为你在 PgAdmin 中设置的实际密码
+
+mybatis-plus:
+  configuration:
+    log-impl: org.apache.ibatis.logging.stdout.StdOutImpl
