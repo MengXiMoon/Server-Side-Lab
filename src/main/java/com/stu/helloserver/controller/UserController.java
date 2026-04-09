@@ -30,4 +30,12 @@ public class UserController {
     public Result<String> getUser(@PathVariable("id") Long id) {
         return userService.getUserById(id);
     }
+
+    // 分页查询用户列表 - 路径为 GET /api/users/page
+    @GetMapping("/page")
+    public Result<Object> getUserPage(
+            @RequestParam(defaultValue = "1") Integer pageNum,
+            @RequestParam(defaultValue = "5") Integer pageSize) {
+        return userService.getUserPage(pageNum, pageSize);
+    }
 }
