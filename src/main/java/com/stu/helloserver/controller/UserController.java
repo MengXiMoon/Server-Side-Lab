@@ -2,6 +2,7 @@ package com.stu.helloserver.controller;
 
 import com.stu.helloserver.common.Result;
 import com.stu.helloserver.dto.UserDTO;
+import com.stu.helloserver.dto.UserDetailVO;
 import com.stu.helloserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -37,5 +38,17 @@ public class UserController {
             @RequestParam(defaultValue = "1") Integer pageNum,
             @RequestParam(defaultValue = "5") Integer pageSize) {
         return userService.getUserPage(pageNum, pageSize);
+    }
+
+    // 4. 获取用户详细信息 - 路径为 GET /api/users/{id}/detail
+    @GetMapping("/{id}/detail")
+    public Result<UserDetailVO> getUserDetail(@PathVariable("id") Long id) {
+        return userService.getUserDetail(id);
+    }
+
+    // 5. 更新用户详细信息 - 路径为 PUT /api/users
+    @PutMapping
+    public Result<String> updateUserInfo(@RequestBody UserDetailVO userDetailVO) {
+        return userService.updateUserInfo(userDetailVO);
     }
 }

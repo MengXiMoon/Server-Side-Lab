@@ -1,6 +1,9 @@
 package com.stu.helloserver.common;
 
-public class Result<T> {
+import java.io.Serializable;
+
+public class Result<T> implements Serializable {
+    private static final long serialVersionUID = 1L;
     private Integer code;
     private String msg;
     private T data;

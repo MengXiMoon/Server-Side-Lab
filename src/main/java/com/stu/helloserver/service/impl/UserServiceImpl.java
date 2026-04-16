@@ -4,11 +4,16 @@ import com.baomidou.mybatisplus.core.conditions.query.LambdaQueryWrapper;
 import com.baomidou.mybatisplus.extension.plugins.pagination.Page;
 import com.stu.helloserver.common.Result;
 import com.stu.helloserver.common.ResultCode;
+import com.stu.helloserver.dto.UserDetailVO;
 import com.stu.helloserver.dto.UserDTO;
 import com.stu.helloserver.entity.User;
+import com.stu.helloserver.entity.UserInfo;
+import com.stu.helloserver.mapper.UserInfoMapper;
 import com.stu.helloserver.mapper.UserMapper;
 import com.stu.helloserver.service.UserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
 
 import java.util.UUID;
@@ -18,6 +23,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserMapper userMapper;
+
+    @Autowired
+    private UserInfoMapper userInfoMapper;
 
     @Override
     public Result<String> register(UserDTO userDTO) {
@@ -81,5 +89,61 @@ public class UserServiceImpl implements UserService {
 
         // 3. 返回结果（resultPage 中包含了 records 数据列表、total 总条数、pages 总页数等完整的分页信息）
         return Result.success(resultPage);
+    }
+
+    @Override
+    @Cacheable(value = "user:detail", key = "#id")
+    public Result<UserDetailVO> getUserDetail(Long id) {
+        System.out.println("--- 物理查询数据库 (id=" + id + ") ---");
+        // 1. 查询基本信息
+        User user = userMapper.selectById(id);
+        if (user == null) {
+            return Result.error(ResultCode.USER_NOT_EXIST);
+        }
+
+        // 2. 查询详细信息
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getUserId, id);
+        UserInfo userInfo = userInfoMapper.selectOne(queryWrapper);
+
+        // 3. 组装 VO
+        UserDetailVO vo = new UserDetailVO();
+        vo.setId(user.getId());
+        vo.setUsername(user.getUsername());
+        if (userInfo != null) {
+            vo.setNickname(userInfo.getNickname());
+            vo.setEmail(userInfo.getEmail());
+            vo.setAge(userInfo.getAge());
+        }
+
+        return Result.success(vo);
+    }
+
+    @Override
+    @CacheEvict(value = "user:detail", key = "#userDetailVO.id")
+    public Result<String> updateUserInfo(UserDetailVO userDetailVO) {
+        System.out.println("--- 修改数据库并清除缓存 (id=" + userDetailVO.getId() + ") ---");
+        // 1. 检查是否存在详细信息记录
+        LambdaQueryWrapper<UserInfo> queryWrapper = new LambdaQueryWrapper<>();
+        queryWrapper.eq(UserInfo::getUserId, userDetailVO.getId());
+        UserInfo dbUserInfo = userInfoMapper.selectOne(queryWrapper);
+
+        if (dbUserInfo == null) {
+            // 新增
+            UserInfo newUserInfo = new UserInfo();
+            newUserInfo.setUserId(userDetailVO.getId());
+            newUserInfo.setNickname(userDetailVO.getNickname());
+            newUserInfo.setEmail(userDetailVO.getEmail());
+            newUserInfo.setAge(userDetailVO.getAge());
+            userInfoMapper.insert(newUserInfo);
+        } else {
+            // 更新
+            dbUserInfo.setNickname(userDetailVO.getNickname());
+            dbUserInfo.setEmail(userDetailVO.getEmail());
+            dbUserInfo.setAge(userDetailVO.getAge());
+            userInfoMapper.updateById(dbUserInfo);
+        }
+
+        return Result.success("更新成功，Redis 缓存已同步失效！");
     }
 }
