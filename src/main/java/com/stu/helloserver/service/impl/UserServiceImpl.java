@@ -11,12 +11,11 @@ import com.stu.helloserver.entity.UserInfo;
 import com.stu.helloserver.mapper.UserInfoMapper;
 import com.stu.helloserver.mapper.UserMapper;
 import com.stu.helloserver.service.UserService;
+import com.stu.helloserver.security.JwtUtil;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.cache.annotation.CacheEvict;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
-
-import java.util.UUID;
 
 @Service
 public class UserServiceImpl implements UserService {
@@ -26,6 +25,9 @@ public class UserServiceImpl implements UserService {
 
     @Autowired
     private UserInfoMapper userInfoMapper;
+
+    @Autowired
+    private JwtUtil jwtUtil;
 
     @Override
     public Result<String> register(UserDTO userDTO) {
@@ -65,8 +67,8 @@ public class UserServiceImpl implements UserService {
             return Result.error(ResultCode.PASSWORD_ERROR);
         }
 
-        String token = "Bearer " + UUID.randomUUID().toString().replace("-", "");
-        return Result.success(token);
+        String jwt = jwtUtil.generateToken(userDTO.getUsername());
+        return Result.success(jwt);
     }
 
     @Override
